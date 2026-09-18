@@ -15,8 +15,8 @@
   "commands": [
     {
       "name": "list-repo",
-      "title": "List repo",
-      "subtitle": "",
+      "title": "List Repositories",
+      "subtitle": "ghq",
       "description": "Show a list of ghq directories.",
       "mode": "view"
     }
@@ -32,7 +32,8 @@
     "@types/react": "19.0.10",
     "eslint": "^10.5.0",
     "prettier": "^3.8.5",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.1"
   },
   "scripts": {
     "build": "ray build",
@@ -40,6 +41,31 @@
     "fix-lint": "ray lint --fix",
     "lint": "ray lint",
     "prepublishOnly": "echo \"\\n\\nIt seems like you are trying to publish the Raycast extension to npm.\\n\\nIf you did intend to publish it to npm, remove the \\`prepublishOnly\\` script and rerun \\`npm publish\\` again.\\nIf you wanted to publish it to the Raycast Store instead, use \\`npm run publish\\` instead.\\n\\n\" && exit 1",
-    "publish": "npx @raycast/api@latest publish"
-  }
+    "publish": "npx @raycast/api@latest publish",
+    "test": "vitest run"
+  },
+  "preferences": [
+    {
+      "name": "editor",
+      "type": "appPicker",
+      "required": false,
+      "title": "Editor",
+      "description": "Application used to open the selected repository with Enter. Optional if a Terminal is set."
+    },
+    {
+      "name": "terminal",
+      "type": "appPicker",
+      "required": false,
+      "title": "Terminal",
+      "description": "Application used to open the selected repository with ⌘ + Enter (Enter when no Editor is set). Optional if an Editor is set."
+    },
+    {
+      "name": "ghqPath",
+      "type": "textfield",
+      "required": true,
+      "title": "ghq Path",
+      "description": "Absolute path to the ghq binary (the output of `which ghq`).",
+      "placeholder": "/opt/homebrew/bin/ghq"
+    }
+  ]
 }
