@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  appendCapped,
   buildExactListArgs,
   buildGetArgs,
   buildGetEnv,
@@ -8,6 +7,7 @@ import {
   getRepository,
   GhqCancelledError,
   GhqError,
+  keepEnd,
   matchPathsIgnoringCase,
   stripAnsi,
   summarizeGhqError,
@@ -435,23 +435,23 @@ describe("buildGetEnv", () => {
   });
 });
 
-describe("appendCapped", () => {
-  it("appends the chunk while the result fits", () => {
-    expect(appendCapped("abc", "def", 10)).toBe("abcdef");
-    expect(appendCapped("", "abc", 3)).toBe("abc");
+describe("keepEnd", () => {
+  it("returns text that fits unchanged", () => {
+    expect(keepEnd("abc", 10)).toBe("abc");
+    expect(keepEnd("abc", 3)).toBe("abc");
+    expect(keepEnd("", 3)).toBe("");
   });
 
-  it("keeps only the end of the text once it exceeds the limit", () => {
-    expect(appendCapped("abcdef", "ghij", 5)).toBe("fghij");
-    expect(appendCapped("", "abcdefgh", 3)).toBe("fgh");
+  it("keeps only the end of text that exceeds the limit", () => {
+    expect(keepEnd("abcdefghij", 5)).toBe("fghij");
+    expect(keepEnd("abcd", 3)).toBe("bcd");
   });
 
   it("never starts with half of a surrogate pair", () => {
     const emoji = String.fromCodePoint(0x1f600);
-    // Cutting 4 code units off the end would split the first emoji: its orphaned low surrogate is dropped as well.
-    const capped = appendCapped(`x${emoji}`, `${emoji}y`, 4);
-    expect(capped).toBe(`${emoji}y`);
-    expect(appendCapped("", `${emoji}${emoji}`, 3)).toBe(emoji);
+    // The last 4 code units would start in the middle of the first emoji: its orphaned low surrogate is dropped too.
+    expect(keepEnd(`x${emoji}${emoji}y`, 4)).toBe(`${emoji}y`);
+    expect(keepEnd(`${emoji}${emoji}`, 3)).toBe(emoji);
   });
 });
 

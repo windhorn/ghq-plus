@@ -203,11 +203,14 @@ export function buildGetEnv(env: NodeJS.ProcessEnv, binary: string): NodeJS.Proc
   return { ...env, GIT_TERMINAL_PROMPT: "0", PATH: directories.join(":") };
 }
 
-/** Appends `chunk` to `text` and keeps at most the last `limit` UTF-16 code units, never starting inside a surrogate pair. */
-export function appendCapped(text: string, chunk: string, limit: number): string {
-  const capped = (text + chunk).slice(-limit);
-  const first = capped.charCodeAt(0);
-  return first >= 0xdc00 && first <= 0xdfff ? capped.slice(1) : capped;
+/** Keeps at most the last `limit` UTF-16 code units of `text`, never starting inside a surrogate pair. */
+export function keepEnd(text: string, limit: number): string {
+  if (text.length <= limit) {
+    return text;
+  }
+  const end = text.slice(-limit);
+  const first = end.charCodeAt(0);
+  return first >= 0xdc00 && first <= 0xdfff ? end.slice(1) : end;
 }
 
 const MAX_STDERR_LENGTH = 1024 * 1024;
@@ -273,15 +276,21 @@ export function createGhqGetExecutor(binary: string): GhqGetExecutor {
         } else if (cancelled) {
           settle(new GhqCancelledError());
         } else {
-          const message = code === null ? `ghq was terminated by ${killSignal}` : summarizeGhqError(stderr);
-          settle(new GhqError(message, stderr));
+          const output = keepEnd(stderr, MAX_STDERR_LENGTH);
+          const message = code === null ? `ghq was terminated by ${killSignal}` : summarizeGhqError(output);
+          settle(new GhqError(message, output));
         }
       };
 
       signal?.addEventListener("abort", onAbort, { once: true });
       child.stderr.setEncoding("utf8");
       child.stderr.on("data", (chunk: string) => {
-        stderr = appendCapped(stderr, chunk, MAX_STDERR_LENGTH);
+        stderr += chunk;
+        // Trimming copies the whole text and git reports its progress in many small chunks: trimming only once the
+        // text has doubled keeps a chunk O(its size) on average instead of O(limit).
+        if (stderr.length > 2 * MAX_STDERR_LENGTH) {
+          stderr = keepEnd(stderr, MAX_STDERR_LENGTH);
+        }
       });
       child.on("error", (error) => settle(error));
       child.on("close", finish);
