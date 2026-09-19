@@ -161,21 +161,6 @@ The toast's **Copy Logs** action copies what ghq and Git wrote to stderr (color 
 
 `ghq get` runs with the `PATH` Raycast provides (system directories), followed by the directory of your ghq binary, `/opt/homebrew/bin`, and `/usr/local/bin`. Tools that Git needs from anywhere else are not found: reference them by absolute path in your Git config, or link them into one of those directories. Because the extra directories are appended, a `git` in the system directories (`/usr/bin/git`) takes precedence over Homebrew's.
 
-## Development
-
-Set up the project as described in [Installation](#installation).
-
-### Scripts
-
-| Script             | Description                                                     |
-| ------------------ | --------------------------------------------------------------- |
-| `npm run dev`      | Run the extension in Raycast with hot reload (`ray develop`)    |
-| `npm run build`    | Production build (`ray build`)                                  |
-| `npm run lint`     | Lint with `ray lint`                                            |
-| `npm run fix-lint` | Lint and fix what can be fixed automatically (`ray lint --fix`) |
-| `npm test`         | Unit tests (`vitest run`)                                       |
-| `npm run publish`  | Publish to the Raycast Store                                    |
-
 ### Project Layout
 
 - `src/list-repo.tsx`, `src/get-repo.tsx`: command entry points
