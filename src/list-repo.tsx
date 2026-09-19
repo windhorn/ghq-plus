@@ -1,29 +1,19 @@
-import {
-  Action,
-  ActionPanel,
-  Application,
-  Icon,
-  Keyboard,
-  List,
-  getPreferenceValues,
-  openExtensionPreferences,
-} from "@raycast/api";
+import { Action, ActionPanel, Icon, List } from "@raycast/api";
 import { useCachedPromise } from "@raycast/utils";
-import { homedir } from "node:os";
-import { useMemo } from "react";
-import { createGhqExecutor, listRepositories, resolveGhqBinary, type Repository } from "./lib/ghq";
+import { EmptyState, GhqPathNotConfigured } from "./components/EmptyState";
+import { GetRepositoryForm } from "./components/GetRepositoryForm";
+import { RepositoryItem } from "./components/RepositoryItem";
+import { useGhqPreferences } from "./components/useGhqPreferences";
+import { createGhqExecutor, listRepositories, type Repository } from "./lib/ghq";
 
 export default function Command() {
-  const preferences = getPreferenceValues<Preferences.ListRepo>();
-  // Enter opens with the first configured app, ⌘ + Enter with the second (Raycast's default action shortcuts).
-  const openers = [preferences.editor, preferences.terminal].filter((app): app is Application => app !== undefined);
-
-  const ghqBinary = useMemo(() => resolveGhqBinary(preferences.ghqPath, homedir()), [preferences.ghqPath]);
+  const { openers, ghqBinary } = useGhqPreferences();
 
   const {
     data: repositories,
     isLoading,
     error,
+    revalidate,
   } = useCachedPromise((binary: string) => listRepositories(createGhqExecutor(binary)), [ghqBinary ?? ""], {
     execute: ghqBinary !== undefined,
     initialData: [] as Repository[],
@@ -32,12 +22,7 @@ export default function Command() {
   });
 
   if (!ghqBinary) {
-    return (
-      <EmptyState
-        title="ghq Path Not Configured"
-        description="Set the absolute path to the ghq binary in the extension preferences."
-      />
-    );
+    return <GhqPathNotConfigured />;
   }
 
   if (openers.length === 0) {
@@ -55,65 +40,27 @@ export default function Command() {
 
   return (
     <List isLoading={isLoading} searchBarPlaceholder="Search repositories…">
+      {/* Raycast also shows the empty view when the search matches nothing, i.e. when a repository is missing. */}
       <List.EmptyView
         icon={Icon.Folder}
         title="No Repositories"
-        description="Run `ghq get <repository>` to clone a repository into your ghq root."
+        description="Press Enter to get a repository with ghq."
+        actions={
+          <ActionPanel>
+            {/* Refreshed when the clone succeeds, because leaving the form can come first, and when the form is left,
+                because a failed or cancelled clone can leave a repository behind as well. */}
+            <Action.Push
+              title="Get Repository"
+              icon={Icon.Download}
+              target={<GetRepositoryForm onGet={revalidate} />}
+              onPop={revalidate}
+            />
+          </ActionPanel>
+        }
       />
       {repositories.map((repository) => (
         <RepositoryItem key={repository.path} repository={repository} openers={openers} />
       ))}
     </List>
-  );
-}
-
-function EmptyState({ title, description }: { title: string; description: string }) {
-  return (
-    <List>
-      <List.EmptyView
-        icon={Icon.Warning}
-        title={title}
-        description={description}
-        actions={
-          <ActionPanel>
-            <Action title="Open Extension Preferences" icon={Icon.Gear} onAction={openExtensionPreferences} />
-          </ActionPanel>
-        }
-      />
-    </List>
-  );
-}
-
-function RepositoryItem({ repository, openers }: { repository: Repository; openers: Application[] }) {
-  return (
-    <List.Item
-      icon={Icon.Folder}
-      title={repository.relativePath}
-      keywords={[repository.name, repository.owner, repository.host].filter((k): k is string => Boolean(k))}
-      accessories={repository.host ? [{ text: repository.host }] : undefined}
-      actions={
-        <ActionPanel>
-          <ActionPanel.Section>
-            {openers.map((app) => (
-              <Action.Open
-                key={app.path}
-                title={`Open in ${app.name}`}
-                icon={{ fileIcon: app.path }}
-                target={repository.path}
-                application={app}
-              />
-            ))}
-          </ActionPanel.Section>
-          <ActionPanel.Section>
-            <Action.ShowInFinder path={repository.path} shortcut={{ modifiers: ["cmd", "shift"], key: "f" }} />
-            <Action.CopyToClipboard
-              title="Copy Path"
-              content={repository.path}
-              shortcut={Keyboard.Shortcut.Common.Copy}
-            />
-          </ActionPanel.Section>
-        </ActionPanel>
-      }
-    />
   );
 }
