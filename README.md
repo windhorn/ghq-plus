@@ -1,4 +1,4 @@
-# ghq
+# ghq plus
 
 Find, open, and clone the repositories you manage with [ghq](https://github.com/x-motemen/ghq) without leaving Raycast.
 
