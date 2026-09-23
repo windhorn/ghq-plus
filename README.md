@@ -1,19 +1,16 @@
-# ghq
+# ghq plus
 
-Find, open, and clone the repositories you manage with [ghq](https://github.com/x-motemen/ghq) without leaving Raycast.
+Find, open, and clone repositories managed by [ghq](https://github.com/x-motemen/ghq) from [Raycast](https://www.raycast.com).
 
-| Command               | What it does                                                                         |
-| --------------------- | ------------------------------------------------------------------------------------ |
-| **List Repositories** | Search every repository under your ghq roots and open it in your editor or terminal. |
-| **Get Repository**    | Clone a repository with `ghq get`, over HTTPS or SSH, and open it right away.        |
-
-The extension runs your own `ghq` binary (`ghq root --all`, `ghq list`, `ghq get`) instead of scanning a folder, so multiple roots and the ghq settings in your Git config (such as `ghq.root`) are respected. Environment variables that are only set in your shell profile, such as `GHQ_ROOT`, are not (see [Troubleshooting](#the-list-differs-from-ghq-list-in-my-terminal)).
+| Command               | Description                                              |
+| --------------------- | -------------------------------------------------------- |
+| **List Repositories** | Search repositories under your ghq roots and open them.  |
+| **Get Repository**    | Clone a repository with `ghq get` (HTTPS or SSH).        |
 
 ## Requirements
 
 - [Raycast](https://www.raycast.com) on macOS
 - [ghq](https://github.com/x-motemen/ghq#installation) and Git
-- [Node.js](https://nodejs.org) and npm, to install the extension from source (see the versions Raycast [requires](https://developers.raycast.com/basics/getting-started))
 
 ```bash
 brew install ghq
@@ -21,9 +18,11 @@ brew install ghq
 
 ## Setup
 
-Raycast does not load your shell profile, so extensions only get the system directories in `PATH` and cannot find `ghq` by name. You tell the extension where it is once.
+Raycast does not load your shell `PATH`, so set the absolute path to `ghq` once.
 
-1. Print the absolute path of the binary:
+1. Run `which ghq` and copy the path (for example `/opt/homebrew/bin/ghq`).
+2. Open **Raycast Settings > Extensions > ghq** and paste it into **ghq Path**.
+3. Choose an **Editor**, a **Terminal**, or both. **List Repositories** needs at least one.
 
    ```bash
    which ghq
@@ -36,9 +35,9 @@ Raycast does not load your shell profile, so extensions only get the system dire
    | `go install`             | `~/go/bin/ghq`           |
    | Nix                      | `~/.nix-profile/bin/ghq` |
 
-2. Run **List Repositories** or **Get Repository**. The first time, Raycast asks for the required **ghq Path** preference: paste the output of `which ghq`. A leading `~/` is expanded to your home directory.
-3. Open the extension preferences (**Raycast Settings > Extensions > ghq**) and choose an **Editor**, a **Terminal**, or both. **List Repositories** needs at least one of them; until then it shows **Editor or Terminal Not Configured**, and `↵` takes you to the same preferences. **Get Repository** works without them.
-4. Optional: turn on **Clone Protocol** > **Clone with SSH** if you normally clone over SSH.
+4. Run **List Repositories** or **Get Repository**. The first time, Raycast asks for the required **ghq Path** preference: paste the output of `which ghq`. A leading `~/` is expanded to your home directory.
+5. Open the extension preferences (**Raycast Settings > Extensions > ghq**) and choose an **Editor**, a **Terminal**, or both. **List Repositories** needs at least one of them; until then it shows **Editor or Terminal Not Configured**, and `↵` takes you to the same preferences. **Get Repository** works without them.
+6. Optional: turn on **Clone Protocol** > **Clone with SSH** if you normally clone over SSH.
 
 ## Commands
 
@@ -116,7 +115,7 @@ Each of these views has a single action, **Open Extension Preferences** (`↵`).
 
 - `spawn ... ENOENT`: there is no file at the configured path. Run `which ghq` again and update **ghq Path**. See the typical paths in [Setup](#setup).
 - `spawn ... EACCES`: the path is a directory or is not executable.
-- A Git error: the **ghq Path** is fine, but Git does not work. ghq needs Git to read its configuration, and the listing and lookup commands run with the `PATH` Raycast provides (system directories only), so they use `/usr/bin/git`. Check that `/usr/bin/git --version` works; if it asks for developer tools, install the Xcode Command Line Tools (`xcode-select --install`). The extra directories described in [Git LFS or a credential helper is not found](#git-lfs-or-a-credential-helper-is-not-found) apply to `ghq get` only.
+- A Git error: the **ghq Path** is fine, but Git does not work. ghq needs Git to read its configuration, and the listing and lookup commands run with the `PATH` Raycast provides (system directories only), so they use `/usr/bin/git`. Check that `/usr/bin/git --version` works; if it asks for developer tools, install the Xcode Command Line Tools (`xcode-select --install`).
 
 ### The list differs from `ghq list` in my terminal
 
@@ -156,16 +155,6 @@ To reproduce a failure in a terminal, run `GIT_TERMINAL_PROMPT=0 ghq get <reposi
 A failed or canceled clone can leave a partial repository behind. If a retry reports **Already cloned** but the repository is incomplete, delete its directory and get it again.
 
 The toast's **Copy Logs** action copies what ghq and Git wrote to stderr (color codes removed, roughly the last 1 MiB if there is more). Include it when you [report an issue](https://github.com/windhorn/ghq/issues), but review it first: it contains repository URLs and local paths.
-
-### Git LFS or a credential helper is not found
-
-`ghq get` runs with the `PATH` Raycast provides (system directories), followed by the directory of your ghq binary, `/opt/homebrew/bin`, and `/usr/local/bin`. Tools that Git needs from anywhere else are not found: reference them by absolute path in your Git config, or link them into one of those directories. Because the extra directories are appended, a `git` in the system directories (`/usr/bin/git`) takes precedence over Homebrew's.
-
-### Project Layout
-
-- `src/list-repo.tsx`, `src/get-repo.tsx`: command entry points
-- `src/components/`: Raycast UI
-- `src/lib/`: logic without Raycast imports (parsing ghq output, building arguments and the environment, summarizing errors, clipboard detection), with its unit tests next to it (`*.test.ts`)
 
 ## License
 
