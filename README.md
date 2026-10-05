@@ -36,7 +36,7 @@ Raycast does not load your shell `PATH`, so set the absolute path to `ghq` once.
    | Nix                      | `~/.nix-profile/bin/ghq` |
 
 4. Run **List Repositories** or **Get Repository**. The first time, Raycast asks for the required **Ghq Path** preference: paste the output of `which ghq`. A leading `~/` is expanded to your home directory.
-5. Open the extension preferences (**Raycast Settings > Extensions > ghq**) and choose an **Editor**, a **Terminal**, or both. **List Repositories** needs at least one of them; until then it shows **Editor or Terminal Not Configured**, and `↵` takes you to the same preferences. **Get Repository** works without them.
+5. Open the extension preferences (**Raycast Settings > Extensions > Ghq Plus**) and choose an **Editor**, a **Terminal**, or both. **List Repositories** needs at least one of them; until then it shows **Editor or Terminal Not Configured**, and `↵` takes you to the same preferences. **Get Repository** works without them.
 6. Optional: turn on **Clone Protocol** > **Clone with SSH** if you normally clone over SSH.
 
 ## Commands
@@ -95,7 +95,7 @@ After a success, the repositories that `ghq get` produced are listed with the sa
 
 \* **List Repositories** needs at least one of the two.
 
-All preferences live in **Raycast Settings > Extensions > ghq**.
+All preferences live in **Raycast Settings > Extensions > Ghq Plus**.
 
 ## Troubleshooting
 
