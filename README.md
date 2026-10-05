@@ -154,7 +154,7 @@ To reproduce a failure in a terminal, run `GIT_TERMINAL_PROMPT=0 ghq get <reposi
 
 A failed or canceled clone can leave a partial repository behind. If a retry reports **Already cloned** but the repository is incomplete, delete its directory and get it again.
 
-The toast's **Copy Logs** action copies what ghq and Git wrote to stderr (color codes removed, roughly the last 1 MiB if there is more). Include it when you [report an issue](https://github.com/windhorn/ghq/issues), but review it first: it contains repository URLs and local paths.
+The toast's **Copy Logs** action copies what ghq and Git wrote to stderr (color codes removed, roughly the last 1 MiB if there is more). Include it when you [report an issue](https://github.com/windhorn/ghq-plus/issues), but review it first: it contains repository URLs and local paths.
 
 ## License
 
